@@ -15,6 +15,7 @@ async function loadAllData() {
     }
 }
 
+
 async function fetchStats() {
     try {
         const res = await fetch('/api/stats');
@@ -177,12 +178,12 @@ async function loadOrderDetail(orderId) {
                         ` : ''}
 
                         <div style="margin-top: 10px;">
-                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Voice Transcript:</label>
-                            <div class="transcript-bubble">${escapeHtml(log.transcript || 'No transcript available.')}</div>
+                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;"><i class="fa-solid fa-comments"></i> Voice Conversation Transcript:</label>
+                            ${formatTranscriptToDialogue(log.transcript)}
                         </div>
 
                         <div style="margin-top: 10px;">
-                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Structured JSON Extraction (Step 2 Schema):</label>
+                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;"><i class="fa-solid fa-brain"></i> Extracted Structured Intent (JSON):</label>
                             <pre class="code-block">${JSON.stringify(intent, null, 2)}</pre>
                         </div>
                     </div>
@@ -479,7 +480,59 @@ async function seedSampleOrders() {
     btn.innerHTML = '<i class="fa-solid fa-database"></i> Seed Orders';
 }
 
+async function syncLiveEigiCalls() {
+    const btn = document.getElementById('sync-calls-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner"></div> Syncing...';
+    }
+    try {
+        const res = await fetch('/api/sync-calls', { method: 'POST' });
+        const data = await res.json();
+        await loadAllData();
+    } catch (err) {
+        console.error('Error syncing live calls:', err);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> Sync Live Calls';
+        }
+    }
+}
+
+function formatTranscriptToDialogue(transcript) {
+    if (!transcript) return '<div class="transcript-bubble">No transcript available.</div>';
+    const lines = transcript.split('\n').filter(l => l.trim().length > 0);
+    const messages = [];
+
+    lines.forEach(line => {
+        if (line.toLowerCase().startsWith('agent:') || line.toLowerCase().startsWith('assistant:')) {
+            messages.push({ role: 'agent', speaker: 'Mira (AI Recovery Agent)', content: line.substring(line.indexOf(':') + 1).trim() });
+        } else if (line.toLowerCase().startsWith('customer:') || line.toLowerCase().startsWith('user:')) {
+            messages.push({ role: 'customer', speaker: 'Customer', content: line.substring(line.indexOf(':') + 1).trim() });
+        } else {
+            messages.push({ role: 'agent', speaker: 'Voice AI Engine', content: line });
+        }
+    });
+
+    return `
+        <div class="chat-dialogue">
+            ${messages.map(m => `
+                <div class="chat-msg ${m.role}">
+                    <div class="chat-avatar"><i class="fa-solid ${m.role === 'agent' ? 'fa-robot' : 'fa-user'}"></i></div>
+                    <div class="chat-content-bubble">
+                        <span class="chat-speaker">${m.speaker}</span>
+                        ${escapeHtml(m.content)}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }
+
+

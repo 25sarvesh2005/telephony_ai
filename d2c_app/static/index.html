@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AURA LUXE — Ultra-Immersive D2C Brand & AI Recovery Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="/d2c/static/style.css">
+</head>
+<body>
+    <!-- Top Announcement Marquee -->
+    <div class="announcement-bar">
+        <div class="marquee-content">
+            <span>✨ FREE Express Delivery on all COD orders above ₹1,999</span>
+            <span>•</span>
+            <span>📞 24/7 AI Voice Delivery Support & Instant Rescheduling</span>
+            <span>•</span>
+            <span>💎 100% Authentic Luxury Handcrafted Essentials</span>
+            <span>•</span>
+            <span>⚡ Use Code <strong>AURA10</strong> for 10% Instant OFF</span>
+        </div>
+    </div>
+
+    <div class="d2c-app-wrapper">
+        <!-- Brand Header -->
+        <header class="d2c-header">
+            <div class="header-left">
+                <div class="brand-badge-luxe">
+                    <i class="fa-solid fa-gem"></i>
+                </div>
+                <div class="brand-titles">
+                    <h2>AURA LUXE</h2>
+                    <span>Luxury D2C Brand & AI Telephony OMS</span>
+                </div>
+            </div>
+
+            <!-- Tab Switcher Navigation -->
+            <nav class="nav-tabs">
+                <button class="nav-tab-btn active" id="tab-store" onclick="switchView('store')">
+                    <i class="fa-solid fa-bag-shopping"></i> Storefront
+                </button>
+                <button class="nav-tab-btn" id="tab-collection" onclick="switchView('collection')">
+                    <i class="fa-solid fa-layer-group"></i> Catalog & Filter
+                </button>
+                <button class="nav-tab-btn" id="tab-tracking" onclick="switchView('tracking')">
+                    <i class="fa-solid fa-location-crosshairs"></i> Track Shipment / NDR
+                </button>
+                <button class="nav-tab-btn" id="tab-logistics" onclick="switchView('logistics')">
+                    <i class="fa-solid fa-truck-fast"></i> Logistics & NDR Sim
+                </button>
+                <button class="nav-tab-btn" id="tab-oms" onclick="switchView('oms')">
+                    <i class="fa-solid fa-boxes-packing"></i> Orders (OMS)
+                </button>
+                <button class="nav-tab-btn" id="tab-analytics" onclick="switchView('analytics')">
+                    <i class="fa-solid fa-chart-pie"></i> Analytics & Risk Bot
+                </button>
+            </nav>
+
+            <div class="header-right">
+                <a href="/" target="_blank" class="btn btn-outline btn-sm" title="Open AI Telephony Engine Console">
+                    <i class="fa-solid fa-headset"></i> Voice AI Console <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                <button class="cart-trigger-btn" onclick="toggleCartDrawer()">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span class="cart-badge" id="cart-item-count">0</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- VIEW 1: D2C STOREFRONT (LANDING PAGE) -->
+        <main id="view-store" class="d2c-view active">
+            <!-- Hero Banner -->
+            <section class="hero-banner">
+                <div class="hero-content">
+                    <span class="hero-tag"><i class="fa-solid fa-sparkles"></i> 2026 Curated Luxury Drop</span>
+                    <h1>Crafted For Perfection.<br><span class="gradient-text">Delivered With Precision.</span></h1>
+                    <p>Experience artisanal craftsmanship with verified Cash on Delivery and automated AI voice support on failed deliveries.</p>
+                    <div class="hero-actions">
+                        <button class="btn btn-gold" onclick="switchView('collection')">
+                            <i class="fa-solid fa-compass"></i> Explore Curated Collection
+                        </button>
+                        <button class="btn btn-outline" onclick="switchView('tracking')">
+                            <i class="fa-solid fa-truck-ramp-box"></i> Track Order / NDR Portal
+                        </button>
+                    </div>
+                    <div class="trust-strip">
+                        <div class="trust-item"><i class="fa-solid fa-shield-check"></i> Verified COD Available</div>
+                        <div class="trust-item"><i class="fa-solid fa-bolt"></i> Same-Day Dispatch</div>
+                        <div class="trust-item"><i class="fa-solid fa-phone-volume"></i> AI-Powered Seamless Delivery</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Curated Categories Carousel -->
+            <section class="home-section">
+                <div class="section-title-wrap">
+                    <h3><i class="fa-solid fa-stars"></i> Curated Categories</h3>
+                    <p>Hand-selected signature lines designed for modern lifestyles</p>
+                </div>
+                <div class="category-cards-grid">
+                    <div class="cat-card" onclick="filterAndSwitchCategory('Ethnic Wear')">
+                        <div class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=600&auto=format&fit=crop&q=80');"></div>
+                        <div class="cat-card-overlay">
+                            <h4>Ethnic Wear</h4>
+                            <span>Pure Banarasi Silk & Zari</span>
+                        </div>
+                    </div>
+                    <div class="cat-card" onclick="filterAndSwitchCategory('Electronics')">
+                        <div class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=600&auto=format&fit=crop&q=80');"></div>
+                        <div class="cat-card-overlay">
+                            <h4>Electronics</h4>
+                            <span>Audiophile ANC Sound</span>
+                        </div>
+                    </div>
+                    <div class="cat-card" onclick="filterAndSwitchCategory('Skincare')">
+                        <div class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&auto=format&fit=crop&q=80');"></div>
+                        <div class="cat-card-overlay">
+                            <h4>Skincare</h4>
+                            <span>Botanical Vitamin C Elixirs</span>
+                        </div>
+                    </div>
+                    <div class="cat-card" onclick="filterAndSwitchCategory('Apparel')">
+                        <div class="cat-card-img" style="background-image: url('https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=600&auto=format&fit=crop&q=80');"></div>
+                        <div class="cat-card-overlay">
+                            <h4>Apparel</h4>
+                            <span>Heavyweight Vintage Denim</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trending Bestsellers Grid -->
+            <section class="home-section">
+                <div class="section-title-wrap">
+                    <h3><i class="fa-solid fa-fire"></i> Trending Bestsellers</h3>
+                    <p>Loved by over 25,000+ happy buyers across India</p>
+                </div>
+                <div class="products-grid" id="home-bestsellers-grid">
+                    <div class="loading-state"><div class="spinner"></div> Loading bestsellers...</div>
+                </div>
+            </section>
+
+            <!-- Why Shop With Us -->
+            <section class="home-section">
+                <div class="section-title-wrap">
+                    <h3><i class="fa-solid fa-award"></i> The Aura Luxe Experience</h3>
+                    <p>Designed for complete peace of mind from checkout to delivery</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon icon-gold"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                        <h4>Verified Cash on Delivery</h4>
+                        <p>Pay only when your parcel reaches your hands. Full inspection allowed at doorstep.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon icon-purple"><i class="fa-solid fa-headset"></i></div>
+                        <h4>AI Delivery Assistant</h4>
+                        <p>Unavailable when the courier arrives? Our voice AI calls you instantly to reschedule.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon icon-cyan"><i class="fa-solid fa-truck-fast"></i></div>
+                        <h4>Bluedart Express Courier</h4>
+                        <p>Air-shipped across 28,000+ pincodes with real-time GPS tracking and live SMS alerts.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon icon-green"><i class="fa-solid fa-rotate-left"></i></div>
+                        <h4>Hassle-Free 7-Day Returns</h4>
+                        <p>Instant doorstep pickup and immediate refunds to your UPI or bank account.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- VIEW 2: PRODUCT CATALOG & DYNAMIC FILTERING -->
+        <main id="view-collection" class="d2c-view">
+            <div class="catalog-layout">
+                <!-- Sidebar Filters -->
+                <aside class="catalog-sidebar">
+                    <div class="filter-group">
+                        <h4><i class="fa-solid fa-filter"></i> Categories</h4>
+                        <div class="filter-checkboxes">
+                            <label><input type="checkbox" name="cat-filter" value="Ethnic Wear" onchange="applyFilters()"> Ethnic Wear</label>
+                            <label><input type="checkbox" name="cat-filter" value="Electronics" onchange="applyFilters()"> Electronics</label>
+                            <label><input type="checkbox" name="cat-filter" value="Skincare" onchange="applyFilters()"> Skincare</label>
+                            <label><input type="checkbox" name="cat-filter" value="Apparel" onchange="applyFilters()"> Apparel</label>
+                            <label><input type="checkbox" name="cat-filter" value="Accessories" onchange="applyFilters()"> Accessories</label>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4><i class="fa-solid fa-sliders"></i> Max Price: <span id="price-val" style="color: var(--color-gold);">₹5,000</span></h4>
+                        <input type="range" id="price-slider" min="500" max="6000" step="250" value="6000" oninput="updatePriceSlider(this.value)">
+                    </div>
+
+                    <div class="filter-group">
+                        <h4><i class="fa-solid fa-shield-check"></i> Perks</h4>
+                        <div class="filter-checkboxes">
+                            <label><input type="checkbox" id="filter-cod" checked onchange="applyFilters()"> Cash on Delivery (COD)</label>
+                            <label><input type="checkbox" id="filter-instock" checked onchange="applyFilters()"> In Stock Only</label>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Products Catalog List -->
+                <div class="catalog-main">
+                    <div class="catalog-top-bar">
+                        <div class="search-input-wrap">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="catalog-search" placeholder="Search products, keywords..." oninput="applyFilters()">
+                        </div>
+                        <div class="sort-select-wrap">
+                            <label>Sort By:</label>
+                            <select id="catalog-sort" onchange="applyFilters()">
+                                <option value="featured">Featured / Popular</option>
+                                <option value="price-asc">Price: Low to High</option>
+                                <option value="price-desc">Price: High to Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <section class="products-grid" id="collection-products-grid">
+                        <div class="loading-state"><div class="spinner"></div> Loading collection...</div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 3: LIVE TRACKING & CUSTOMER NDR SELF-RESOLUTION PORTAL -->
+        <main id="view-tracking" class="d2c-view">
+            <div class="tracking-portal-container">
+                <div class="tracking-search-card">
+                    <h3><i class="fa-solid fa-location-dot"></i> Live Shipment Tracker & AI Self-Service Portal</h3>
+                    <p>Enter your Order ID or AWB Tracking Number to check real-time courier status and resolve delivery issues.</p>
+                    <div class="tracking-input-row">
+                        <input type="text" id="tracking-query" placeholder="Enter Order ID (e.g. ORD-9481, ORD-8820, ORD-7732)..." value="ORD-9481">
+                        <button class="btn btn-gold" onclick="searchTrackingOrder()">
+                            <i class="fa-solid fa-crosshairs"></i> Track Shipment
+                        </button>
+                    </div>
+                </div>
+
+                <div id="tracking-result-box" style="display: none;">
+                    <!-- Injected dynamically via JS -->
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 4: LOGISTICS & NDR SIMULATOR -->
+        <main id="view-logistics" class="d2c-view">
+            <div class="section-intro">
+                <div>
+                    <h3><i class="fa-solid fa-truck-ramp-box"></i> Courier Logistics & AI Voice Recovery Trigger</h3>
+                    <p>Simulate real-world courier delivery partner events (Bluedart / Delhivery). Trigger Non-Delivery Reports (NDR) to see the AI voice agent call the customer live!</p>
+                </div>
+            </div>
+
+            <div class="logistics-workspace">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h4><i class="fa-solid fa-box"></i> Active Shipments in Logistics Pipeline</h4>
+                        <button class="btn btn-secondary btn-sm" onclick="loadD2COrders()"><i class="fa-solid fa-arrows-rotate"></i> Refresh</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Order & AWB</th>
+                                    <th>Customer</th>
+                                    <th>Amount</th>
+                                    <th>Courier Status</th>
+                                    <th class="text-right">Logistics Simulation Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logistics-table-body">
+                                <tr><td colspan="5" class="loading-state">Loading shipments...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel" id="logistics-inspector">
+                    <div class="panel-header">
+                        <h4><i class="fa-solid fa-wave-square"></i> Real-time Telemetry & Tracking Milestones</h4>
+                    </div>
+                    <div class="panel-body" id="logistics-inspector-body">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-truck-moving"></i>
+                            <p>Select any shipment or trigger an NDR delivery failure to view live tracking history and AI recovery sync.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 5: D2C ORDER MANAGEMENT SYSTEM (OMS) -->
+        <main id="view-oms" class="d2c-view">
+            <div class="section-intro">
+                <div>
+                    <h3><i class="fa-solid fa-boxes-packing"></i> D2C Order Management System (OMS)</h3>
+                    <p>Track all customer orders, COD payments, delivery attempt counts, and synchronized AI voice resolutions.</p>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer Details</th>
+                                <th>Items</th>
+                                <th>Total & Payment</th>
+                                <th>Fulfillment Status</th>
+                                <th>Resolution Notes</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="oms-table-body">
+                            <tr><td colspan="7" class="loading-state">Loading orders...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- VIEW 6: D2C ANALYTICS & THRESHOLD RISK BOT -->
+        <main id="view-analytics" class="d2c-view">
+            <div class="section-intro">
+                <div>
+                    <h3><i class="fa-solid fa-chart-line"></i> D2C Store Performance & Threshold Risk Shield</h3>
+                    <p>Real-time metrics on gross sales, COD delivery performance, and courier RTO expenses saved by the AI recovery voice bot.</p>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metric-card card-gold">
+                    <div class="metric-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Gross Merchandise Value (GMV)</span>
+                        <h2 class="metric-value" id="d2c-stat-gmv">₹0</h2>
+                    </div>
+                </div>
+                <div class="metric-card card-blue">
+                    <div class="metric-icon"><i class="fa-solid fa-cart-check"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Total D2C Orders</span>
+                        <h2 class="metric-value" id="d2c-stat-orders">0</h2>
+                    </div>
+                </div>
+                <div class="metric-card card-green">
+                    <div class="metric-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">Saved RTO Logistics Cost</span>
+                        <h2 class="metric-value" id="d2c-stat-saved">₹0</h2>
+                    </div>
+                </div>
+                <div class="metric-card card-purple">
+                    <div class="metric-icon"><i class="fa-solid fa-phone-arrow-up-right"></i></div>
+                    <div class="metric-info">
+                        <span class="metric-label">NDR Recovery Rate</span>
+                        <h2 class="metric-value" id="d2c-stat-recovery-rate">0%</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Threshold Risk Bot Flagged Orders Table -->
+            <div class="panel" style="margin-top: 24px;">
+                <div class="panel-header">
+                    <h4><i class="fa-solid fa-robot"></i> Threshold Risk Bot — High-Risk COD Orders Flagged</h4>
+                    <span class="count-badge" id="risk-flagged-count">0 Flagged</span>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer & Phone</th>
+                                <th>Amount</th>
+                                <th>Attempts</th>
+                                <th>Risk Triggers</th>
+                                <th>AI Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="risk-bot-table-body">
+                            <tr><td colspan="6" class="loading-state">Analyzing risk patterns...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+
+        <!-- Product Detail Page (PDP) Modal -->
+        <div class="modal-backdrop" id="pdp-modal" style="display: none;">
+            <div class="modal-card modal-pdp">
+                <button class="modal-close-btn" onclick="closePDPModal()">&times;</button>
+                <div class="pdp-layout" id="pdp-modal-content">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide-out Shopping Cart Drawer -->
+        <div class="cart-drawer-backdrop" id="cart-drawer-backdrop" onclick="toggleCartDrawer()"></div>
+        <aside class="cart-drawer" id="cart-drawer">
+            <div class="drawer-header">
+                <div class="drawer-title">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <h3>Your Luxury Bag</h3>
+                </div>
+                <button class="modal-close-btn" onclick="toggleCartDrawer()">&times;</button>
+            </div>
+
+            <!-- Free Shipping Progress Bar -->
+            <div class="free-shipping-box">
+                <div class="free-shipping-text" id="free-shipping-text">Add ₹400 more for FREE Express Shipping!</div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="free-shipping-fill" style="width: 70%;"></div>
+                </div>
+            </div>
+
+            <div class="drawer-body" id="cart-drawer-body">
+                <div class="empty-cart-msg">Your shopping bag is empty.</div>
+            </div>
+
+            <div class="drawer-footer">
+                <!-- Promo Code -->
+                <div class="coupon-box">
+                    <input type="text" id="coupon-code-input" placeholder="Promo Code (Try AURA10)...">
+                    <button class="btn btn-secondary btn-sm" onclick="applyCoupon()">Apply</button>
+                </div>
+                <div class="cart-summary-row">
+                    <span>Subtotal:</span>
+                    <strong id="cart-subtotal">₹0.00</strong>
+                </div>
+                <div class="cart-summary-row" id="coupon-discount-row" style="display: none; color: var(--color-gold);">
+                    <span>Discount (AURA10):</span>
+                    <strong id="coupon-discount-val">-₹0.00</strong>
+                </div>
+                <div class="cart-summary-row" style="font-size: 12px; color: var(--color-success);">
+                    <span>Delivery:</span>
+                    <span>FREE Express Delivery</span>
+                </div>
+                <button class="btn btn-gold btn-block" onclick="openCheckoutModal()">
+                    <i class="fa-solid fa-lock"></i> Proceed to Checkout
+                </button>
+            </div>
+        </aside>
+
+        <!-- 1-Click Checkout Modal -->
+        <div class="modal-backdrop" id="checkout-modal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fa-solid fa-bag-shopping"></i>
+                        <h3>D2C 1-Click Express Checkout</h3>
+                    </div>
+                    <button class="modal-close-btn" onclick="closeCheckoutModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Full Name:</label>
+                        <input type="text" class="input-control" id="chk-name" value="Ayush Dubey" placeholder="Customer name">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number (Receives AI recovery call if delivery fails):</label>
+                        <input type="text" class="input-control" id="chk-phone" value="+919319297977" placeholder="+91XXXXXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label>Delivery Address:</label>
+                        <input type="text" class="input-control" id="chk-address" value="Flat 302, Palm Grove Heights, Koramangala" placeholder="Street address">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>City:</label>
+                            <input type="text" class="input-control" id="chk-city" value="Bengaluru">
+                        </div>
+                        <div class="form-group">
+                            <label>Pincode:</label>
+                            <input type="text" class="input-control" id="chk-pincode" value="560034">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Method:</label>
+                        <div class="payment-options">
+                            <label class="radio-label active">
+                                <input type="radio" name="payment-method" value="COD" checked>
+                                <span><i class="fa-solid fa-hand-holding-dollar"></i> Cash on Delivery (COD)</span>
+                            </label>
+                            <label class="radio-label">
+                                <input type="radio" name="payment-method" value="PREPAID">
+                                <span><i class="fa-solid fa-credit-card"></i> Prepaid (UPI / Card - 5% OFF)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeCheckoutModal()">Cancel</button>
+                    <button class="btn btn-gold" id="place-order-btn" onclick="executeCheckout()">
+                        <i class="fa-solid fa-check"></i> Place D2C Order
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- NDR Trigger Modal -->
+        <div class="modal-backdrop" id="ndr-modal" style="display: none;">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fa-solid fa-truck-ramp-box"></i>
+                        <h3>Simulate Courier Delivery Failure (NDR)</h3>
+                    </div>
+                    <button class="modal-close-btn" onclick="closeNDRModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p class="modal-desc">This triggers a Non-Delivery Report (NDR) from the courier. The AI recovery voice agent will automatically call the customer's phone to negotiate delivery!</p>
+                    <div class="modal-order-summary" id="ndr-order-summary"></div>
+                    
+                    <div class="form-group">
+                        <label>Courier Failure Reason:</label>
+                        <select class="input-control" id="ndr-failure-code">
+                            <option value="CUSTOMER_UNAVAILABLE">Customer Unavailable at Residence / Office</option>
+                            <option value="WRONG_ADDRESS">Incorrect / Incomplete Delivery Address</option>
+                            <option value="PHONE_UNREACHABLE">Customer Phone Switched Off / No Answer</option>
+                            <option value="REJECTED_ON_ARRIVAL">Customer Refused COD Delivery on Arrival</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Courier Field Executive Remarks:</label>
+                        <input type="text" class="input-control" id="ndr-remarks" value="Customer door locked during morning delivery round.">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Telephony Engine Mode:</label>
+                        <select class="input-control" id="ndr-telephony-provider">
+                            <option value="eigi">eigi.ai Live AI Agent (Plivo Trunk)</option>
+                            <option value="android_jio">Android Phone (Jio VoLTE SIM)</option>
+                            <option value="simulation">Simulation Sandbox</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeNDRModal()">Cancel</button>
+                    <button class="btn btn-danger" id="confirm-ndr-btn" onclick="executeNDRTrigger()">
+                        <i class="fa-solid fa-phone-volume"></i> Report Failure & Call Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/d2c/static/app.js"></script>
+</body>
+</html>

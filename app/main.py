@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import uuid
 from typing import Any, Dict, List, Optional
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -46,11 +47,44 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
+# Mount static files for Voice AI
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if not os.path.exists(static_dir):
     os.makedirs(static_dir, exist_ok=True)
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
+# Mount D2C Static Files & Routers
+d2c_static_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "d2c_app", "static"))
+if os.path.exists(d2c_static_dir):
+    app.mount("/d2c/static", StaticFiles(directory=d2c_static_dir), name="d2c_static")
+
+try:
+    from d2c_app.main import d2c_app
+    from d2c_app.routes.products import router as d2c_prod
+    from d2c_app.routes.cart import router as d2c_cart
+    from d2c_app.routes.checkout import router as d2c_chk
+    from d2c_app.routes.orders import router as d2c_ord
+    from d2c_app.routes.logistics import router as d2c_log
+    from d2c_app.routes.analytics import router as d2c_ana
+
+    app.include_router(d2c_prod, prefix="/api/d2c")
+    app.include_router(d2c_cart, prefix="/api/d2c")
+    app.include_router(d2c_chk, prefix="/api/d2c")
+    app.include_router(d2c_ord, prefix="/api/d2c")
+    app.include_router(d2c_log, prefix="/api/d2c")
+    app.include_router(d2c_ana, prefix="/api/d2c")
+    app.mount("/d2c", d2c_app)
+except Exception as e:
+    logger.warning(f"D2C App Mount Note: {e}")
+
+
+@app.get("/d2c", include_in_schema=False)
+@app.get("/d2c/", include_in_schema=False)
+async def serve_d2c_root():
+    index_file = os.path.join(d2c_static_dir, "index.html")
+    if os.path.exists(index_file):
+        return FileResponse(index_file)
+    return {"message": "D2C Storefront is loading..."}
 
 
 @app.get("/", include_in_schema=False)
@@ -304,6 +338,112 @@ async def simulate_call(req: SimulateCallRequest, db: Session = Depends(get_db))
     }
 
 
+@app.get("/api/sync-calls", summary="Sync and ingest recent call transcripts directly from eigi.ai API")
+@app.post("/api/sync-calls", summary="Sync and ingest recent call transcripts directly from eigi.ai API")
+async def sync_eigi_calls(db: Session = Depends(get_db)):
+    """Actively polls and ingests all conversations, transcripts, and audio recordings from eigi.ai cloud."""
+    if settings.SIMULATION_MODE or settings.EIGI_API_KEY.startswith("mock_"):
+        return {"synced_count": 0, "message": "Simulation mode active; no live cloud sync needed."}
+
+    conversations = await eigi_client.list_conversations(limit=20)
+    synced_items = []
+
+    for conv in conversations:
+        call_id = conv.get("conversation_id") or conv.get("id")
+        if not call_id:
+            continue
+
+        raw_transcript = conv.get("conversation_transcript")
+        meta = conv.get("conversation_metadata") or {}
+        dyn_vars = meta.get("dynamic_variables") or {}
+        to_phone = meta.get("to_mobile_number") or conv.get("to_mobile_number")
+        duration = meta.get("conversation_duration") or conv.get("duration") or 0
+        rec_url = meta.get("conversation_recording_url") or conv.get("recording_url")
+        notes = conv.get("notes") or ""
+
+        order_id = dyn_vars.get("order_id")
+        if not order_id and raw_transcript:
+            match = re.search(r"#?(ORD-\d+)", str(raw_transcript), re.IGNORECASE)
+            if match:
+                order_id = match.group(1).upper()
+
+        order = None
+        if order_id:
+            order = db.query(Order).filter(Order.order_id == order_id).first()
+
+        if not order and to_phone:
+            clean_p = to_phone.replace("+", "").replace(" ", "").replace("-", "")
+            order = db.query(Order).filter((Order.customer_phone == to_phone) | (Order.customer_phone.endswith(clean_p[-10:]))).first()
+            if order:
+                order_id = order.order_id
+
+        # If order still not found in DB, auto-create order record for this phone call
+        if not order:
+            customer_name = dyn_vars.get("customer_name") or "Customer"
+            order = Order(
+                order_id=order_id or f"ORD-{call_id[-4:].upper()}",
+                customer_name=customer_name,
+                customer_phone=to_phone or "+919876543210",
+                amount=float(dyn_vars.get("order_amount") or 2499.00),
+                currency=dyn_vars.get("currency") or "INR",
+                payment_method="COD",
+                status="DELIVERY_FAILED",
+                delivery_attempts=1,
+                delivery_address=dyn_vars.get("delivery_address") or "Residence Address",
+                city=dyn_vars.get("city") or "City",
+                notes=f"Auto-synced from eigi.ai call: {notes}",
+            )
+            db.add(order)
+            db.commit()
+            db.refresh(order)
+            order_id = order.order_id
+
+        formatted_transcript = intent_extractor.format_transcript(raw_transcript)
+        extracted: ExtractedIntent = intent_extractor.extract_from_payload(
+            transcript=raw_transcript,
+            order_id=order_id,
+        )
+
+        existing_log = db.query(CallLog).filter(CallLog.call_id == call_id).first()
+        if not existing_log:
+            call_log = CallLog(
+                call_id=call_id,
+                order_id=order_id,
+                duration_seconds=duration,
+                call_outcome=extracted.call_outcome,
+                transcript=formatted_transcript,
+                recording_url=rec_url,
+            )
+            call_log.extracted_intent = extracted.model_dump()
+            db.add(call_log)
+            db.commit()
+            db.refresh(call_log)
+
+            decision: ResolutionDecision = resolution_agent.decide(
+                extracted_intent=extracted,
+                order=order,
+                call_id=call_id,
+            )
+            resolution: Resolution = operations_agent.execute(decision=decision, db=db)
+            synced_items.append({"call_id": call_id, "order_id": order_id, "intent": extracted.customer_intent, "action": decision.action})
+        else:
+            # Update transcript and recording URL if previously empty
+            if (not existing_log.transcript or existing_log.transcript == "None") and formatted_transcript:
+                existing_log.transcript = formatted_transcript
+                existing_log.recording_url = rec_url
+                existing_log.duration_seconds = duration
+                existing_log.extracted_intent = extracted.model_dump()
+                db.commit()
+                synced_items.append({"call_id": call_id, "order_id": order_id, "status": "updated"})
+
+    return {
+        "status": "success",
+        "synced_count": len(synced_items),
+        "synced_items": synced_items,
+        "total_conversations_checked": len(conversations),
+    }
+
+
 # ---------------------------------------------------------------------------
 # API: Orders & Dashboard Metrics
 # ---------------------------------------------------------------------------
@@ -378,6 +518,7 @@ def list_resolutions(limit: int = 50, db: Session = Depends(get_db)):
 
 
 @app.get("/api/stats")
+@app.get("/api/dashboard-stats")
 def get_dashboard_stats(db: Session = Depends(get_db)):
     total_orders = db.query(Order).count()
     failed = db.query(Order).filter(Order.status == "DELIVERY_FAILED").count()

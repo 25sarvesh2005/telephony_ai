@@ -1,0 +1,371 @@
+{
+	"info": {
+		"_postman_id": "a92e6c10-8b44-4e2b-a110-85f67df6e91b",
+		"name": "Aura Luxe — Voice AI Telephony & D2C Commerce Engine",
+		"description": "Complete Postman API Collection for Aura Luxe D2C Storefront, Courier Logistics NDR Pipeline, and AI Voice Recovery Engine (eigi.ai / Jio VoLTE / Simulation).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://127.0.0.1:8000",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "🛍️ D2C Storefront & Checkout",
+			"item": [
+				{
+					"name": "List Product Catalog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/products",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "products"]
+						},
+						"description": "Fetch all luxury products in catalog with categories, stock, and pricing."
+					}
+				},
+				{
+					"name": "Get Product by SKU",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/products/AUR-SAREE-01",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "products", "AUR-SAREE-01"]
+						},
+						"description": "Fetch full product specifications, image gallery, and inventory."
+					}
+				},
+				{
+					"name": "Add Item to Cart",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"session_id\": \"sess_demo_123\",\n  \"product_id\": 1,\n  \"quantity\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/d2c/cart/add",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "cart", "add"]
+						}
+					}
+				},
+				{
+					"name": "Get Cart by Session ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/cart/sess_demo_123",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "cart", "sess_demo_123"]
+						}
+					}
+				},
+				{
+					"name": "1-Click Express Checkout (Create D2C Order)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customer_name\": \"Ayush Dubey\",\n  \"customer_phone\": \"+919319297977\",\n  \"customer_email\": \"ayush@example.com\",\n  \"shipping_address\": \"Flat 302, Palm Grove Heights, Koramangala\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"pincode\": \"560034\",\n  \"payment_method\": \"COD\",\n  \"items\": [\n    {\n      \"product_id\": 1,\n      \"quantity\": 1,\n      \"unit_price\": 2999.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/d2c/checkout",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "checkout"]
+						},
+						"description": "Places order, assigns Bluedart AWB, and creates tracking record."
+					}
+				}
+			]
+		},
+		{
+			"name": "🚚 Courier Logistics & NDR Engine",
+			"item": [
+				{
+					"name": "Dispatch Shipment (Assign AWB)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"ORD-9481\",\n  \"courier_partner\": \"Bluedart Express\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/d2c/logistics/dispatch",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "logistics", "dispatch"]
+						}
+					}
+				},
+				{
+					"name": "Mark Out for Delivery",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"ORD-9481\",\n  \"courier_name\": \"Express Delivery Rider (Simulated)\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/d2c/logistics/out-for-delivery",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "logistics", "out-for-delivery"]
+						}
+					}
+				},
+				{
+					"name": "Trigger Courier Delivery Failure (NDR) & AI Call",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"ORD-9481\",\n  \"failure_code\": \"CUSTOMER_UNAVAILABLE\",\n  \"courier_remarks\": \"Customer door locked during morning delivery run.\",\n  \"auto_trigger_call\": true,\n  \"telephony_provider\": \"eigi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/d2c/logistics/ndr",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "logistics", "ndr"]
+						},
+						"description": "Reports delivery failure and immediately dispatches an automated voice call to the customer's phone."
+					}
+				},
+				{
+					"name": "Mark Shipment Delivered",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/logistics/delivered?order_id=ORD-9481",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "logistics", "delivered"],
+							"query": [
+								{
+									"key": "order_id",
+									"value": "ORD-9481"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🤖 Threshold Risk Bot & Orders (OMS)",
+			"item": [
+				{
+					"name": "List All D2C Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/orders",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "orders"]
+						}
+					}
+				},
+				{
+					"name": "Get Order Tracking & Milestone Timeline",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/orders/ORD-9481",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "orders", "ORD-9481"]
+						}
+					}
+				},
+				{
+					"name": "Get All Flagged High-Risk Orders",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/orders/flagged/all",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "orders", "flagged", "all"]
+						},
+						"description": "Scans all orders against risk thresholds (Attempts >= 3, High COD >= 3000, Short Address, Repeat RTO)."
+					}
+				},
+				{
+					"name": "Run Threshold Risk Analysis for Specific Order",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/orders/ORD-8820/threshold-analysis",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "orders", "ORD-8820", "threshold-analysis"]
+						}
+					}
+				},
+				{
+					"name": "Get D2C Financial & RTO Analytics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/d2c/analytics",
+							"host": ["{{base_url}}"],
+							"path": ["api", "d2c", "analytics"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📞 Telephony & Voice AI Recovery Engine",
+			"item": [
+				{
+					"name": "Get Telephony Configuration",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/config",
+							"host": ["{{base_url}}"],
+							"path": ["api", "config"]
+						}
+					}
+				},
+				{
+					"name": "Switch Telephony Provider",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"telephony_provider\": \"eigi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/config",
+							"host": ["{{base_url}}"],
+							"path": ["api", "config"]
+						},
+						"description": "Values: 'eigi', 'android_jio', 'simulation'"
+					}
+				},
+				{
+					"name": "Trigger Live Outbound Call",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"ORD-9481\",\n  \"phone_override\": \"+919319297977\",\n  \"telephony_provider\": \"eigi\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/trigger-call",
+							"host": ["{{base_url}}"],
+							"path": ["trigger-call"]
+						}
+					}
+				},
+				{
+					"name": "Simulate End-to-End Voice Scenario",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"order_id\": \"ORD-9481\",\n  \"scenario\": \"reschedule\",\n  \"reschedule_datetime\": \"Tomorrow at 6:00 PM\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/simulate-call",
+							"host": ["{{base_url}}"],
+							"path": ["simulate-call"]
+						},
+						"description": "Scenarios: 'reschedule', 'cancel', 'wrong_address', 'escalate_human', 'no_answer', 'voicemail'"
+					}
+				},
+				{
+					"name": "eigi.ai Webhook Receiver",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"event\": \"conversation.completed\",\n  \"conversation_id\": \"conv_live_test_01\",\n  \"order_id\": \"ORD-9481\",\n  \"to_mobile_number\": \"+919319297977\",\n  \"conversation_duration\": 45,\n  \"conversation_transcript\": \"Agent: Calling from Aura Luxe regarding COD order. Customer: Please deliver tomorrow at 6 PM.\",\n  \"extracted_intent\": {\n    \"customer_intent\": \"reschedule\",\n    \"reschedule_datetime\": \"Tomorrow at 6:00 PM\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/webhooks/eigi",
+							"host": ["{{base_url}}"],
+							"path": ["webhooks", "eigi"]
+						}
+					}
+				},
+				{
+					"name": "Get Dashboard Telephony Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dashboard-stats",
+							"host": ["{{base_url}}"],
+							"path": ["api", "dashboard-stats"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

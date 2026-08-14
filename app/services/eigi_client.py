@@ -1,119 +1,162 @@
 import logging
 import uuid
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 import httpx
 from app.config import settings
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("eigi_client")
 
 
 class EigiClient:
-    """Client for triggering outbound calls and managing telephony with eigi.ai."""
+    """Official eigi.ai API Client for managing voice agents and outbound telephony."""
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        agent_id: Optional[str] = None,
         base_url: Optional[str] = None,
-        simulation_mode: Optional[bool] = None,
     ):
         self.api_key = api_key or settings.EIGI_API_KEY
-        self.agent_id = agent_id or settings.EIGI_AGENT_ID
-        self.base_url = (base_url or settings.EIGI_BASE_URL).rstrip("/")
-        self.simulation_mode = simulation_mode if simulation_mode is not None else settings.SIMULATION_MODE
+        base = (base_url or settings.EIGI_BASE_URL).rstrip("/")
+        if not base.endswith("/public"):
+            if "/v1" in base:
+                self.base_url = f"{base}/public"
+            else:
+                self.base_url = f"{base}/v1/public"
+        else:
+            self.base_url = base
+
+    def _get_headers(self) -> Dict[str, str]:
+        return {
+            "X-API-Key": self.api_key,
+            "Content-Type": "application/json",
+        }
 
     async def start_call(
         self,
         to_number: str,
-        variables: Dict[str, Any],
+        from_number: Optional[str] = None,
+        variables: Optional[Dict[str, Any]] = None,
         agent_id: Optional[str] = None,
-        webhook_url: Optional[str] = None,
+        telephony_provider: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Trigger an outbound call to the customer via eigi.ai."""
-        target_agent = agent_id or self.agent_id
-        call_id = f"eigi_{uuid.uuid4().hex[:12]}"
+        """
+        Triggers an outbound conversational AI voice call to a customer's phone number.
+        Uses POST /v1/public/calls/outbound with schema:
+        {
+          "agent_id": "...",
+          "params": [{ "mobile_number": "+91...", "metadata": { ... } }],
+          "telephony_provider": "PLIVO"
+        }
+        """
+        active_agent_id = agent_id or settings.EIGI_AGENT_ID
+        active_provider = telephony_provider or settings.EIGI_TELEPHONY_PROVIDER
 
-        # If in simulation mode or API key is demo placeholder, handle gracefully
-        if self.simulation_mode or not self.api_key or self.api_key.startswith("mock_"):
-            logger.info(
-                f"[EigiClient SIMULATION] Triggering simulated call {call_id} to {to_number} with agent {target_agent} and variables: {variables}"
-            )
+        if settings.SIMULATION_MODE or self.api_key.startswith("mock_"):
+            logger.info(f"[SIMULATION] Simulating outbound call to {to_number} via eigi agent {active_agent_id}")
+            simulated_call_id = f"sim_{uuid.uuid4().hex[:12]}"
             return {
                 "success": True,
                 "status": "queued",
-                "call_id": call_id,
-                "agent_id": target_agent,
+                "call_id": simulated_call_id,
+                "provider": active_provider,
+                "agent_id": active_agent_id,
                 "to_number": to_number,
-                "variables": variables,
+                "message": "Call simulated (SANDBOX MODE)",
                 "mode": "simulation",
-                "message": "Call simulated successfully. Use /simulate-call or trigger simulator in UI to complete webhook flow.",
             }
 
-        # Real API invocation to eigi.ai
         endpoint = f"{self.base_url}/calls/outbound"
-        headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "agent_id": target_agent,
-            "to_number": to_number,
-            "variables": variables,
-        }
-        if webhook_url:
-            payload["webhook_url"] = webhook_url
+        param_item: Dict[str, Any] = {"mobile_number": to_number}
+        if variables:
+            param_item["metadata"] = variables
 
-        logger.info(f"[EigiClient] Dispatching real outbound call request to {endpoint} for {to_number}")
+        payload: Dict[str, Any] = {
+            "agent_id": active_agent_id,
+            "params": [param_item],
+            "telephony_provider": active_provider,
+        }
+
+        logger.info(f"Dispatching eigi.ai outbound call to {to_number} (Endpoint: {endpoint})")
+        try:
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                response = await client.post(
+                    endpoint,
+                    json=payload,
+                    headers=self._get_headers(),
+                )
+
+                if response.status_code in (200, 201):
+                    data = response.json()
+                    logger.info(f"eigi.ai outbound call queued successfully: {data}")
+                    return {
+                        "success": True,
+                        "status": "queued",
+                        "call_id": data.get("conversation_id") or data.get("call_id") or f"eigi_{uuid.uuid4().hex[:12]}",
+                        "provider": active_provider,
+                        "agent_id": active_agent_id,
+                        "to_number": to_number,
+                        "data": data,
+                        "mode": "live",
+                        "message": data.get("message", "Outbound calls initiated: 1 successful"),
+                    }
+                else:
+                    error_msg = f"eigi.ai returned status {response.status_code}: {response.text}"
+                    logger.error(error_msg)
+                    return {
+                        "success": False,
+                        "status": "failed",
+                        "error": error_msg,
+                        "status_code": response.status_code,
+                        "response_body": response.text,
+                    }
+
+        except Exception as e:
+            logger.error(f"Failed to connect to eigi.ai API: {e}", exc_info=True)
+            return {
+                "success": False,
+                "status": "error",
+                "error": str(e),
+            }
+
+    async def get_call_status(self, conversation_id: str) -> Dict[str, Any]:
+        endpoint = f"{self.base_url}/conversations/{conversation_id}"
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
-                response = await client.post(endpoint, json=payload, headers=headers)
-                response.raise_for_status()
-                data = response.json()
-                return {
-                    "success": True,
-                    "status": data.get("status", "initiated"),
-                    "call_id": data.get("call_id", call_id),
-                    "data": data,
-                    "mode": "live",
-                }
-        except httpx.HTTPStatusError as e:
-            logger.error(f"[EigiClient] HTTP Error from eigi.ai: {e.response.status_code} - {e.response.text}")
-            return {
-                "success": False,
-                "status": "failed",
-                "error": f"eigi.ai returned status {e.response.status_code}: {e.response.text}",
-                "call_id": call_id,
-                "mode": "live",
-            }
+                response = await client.get(endpoint, headers=self._get_headers())
+                if response.status_code == 200:
+                    return response.json()
+                return {"status": "unknown", "status_code": response.status_code, "body": response.text}
         except Exception as e:
-            logger.error(f"[EigiClient] Failed to dispatch call to eigi.ai: {str(e)}")
-            return {
-                "success": False,
-                "status": "failed",
-                "error": str(e),
-                "call_id": call_id,
-                "mode": "live",
-            }
+            return {"status": "error", "error": str(e)}
 
-    async def get_call_status(self, call_id: str) -> Dict[str, Any]:
-        """Fetch real-time status of a call from eigi.ai."""
-        if self.simulation_mode or not self.api_key or self.api_key.startswith("mock_"):
-            return {
-                "call_id": call_id,
-                "status": "completed",
-                "mode": "simulation",
-            }
-
-        endpoint = f"{self.base_url}/calls/{call_id}"
-        headers = {"Authorization": f"Bearer {self.api_key}"}
+    async def get_agent(self, agent_id: Optional[str] = None) -> Dict[str, Any]:
+        target_id = agent_id or settings.EIGI_AGENT_ID
+        endpoint = f"{self.base_url}/agents/{target_id}"
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
-                response = await client.get(endpoint, headers=headers)
-                response.raise_for_status()
-                return response.json()
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(endpoint, headers=self._get_headers())
+                if response.status_code == 200:
+                    return response.json()
+                return {"error": response.text, "status_code": response.status_code}
         except Exception as e:
-            logger.error(f"[EigiClient] Failed to fetch call status for {call_id}: {e}")
-            return {"call_id": call_id, "status": "unknown", "error": str(e)}
+            return {"error": str(e)}
+
+    async def list_conversations(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Fetch recent conversations and call transcripts from eigi.ai API."""
+        endpoint = f"{self.base_url}/conversations"
+        try:
+            async with httpx.AsyncClient(timeout=15.0) as client:
+                response = await client.get(endpoint, headers=self._get_headers())
+                if response.status_code == 200:
+                    data = response.json()
+                    return data.get("data", [])
+                logger.warning(f"Failed to list eigi conversations: {response.status_code} - {response.text}")
+                return []
+        except Exception as e:
+            logger.error(f"Error fetching eigi conversations: {e}")
+            return []
 
 
 eigi_client = EigiClient()
+
+
