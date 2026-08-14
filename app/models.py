@@ -20,11 +20,19 @@ class Order(Base):
     city = Column(String(100), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
 
     # Relationships
-    call_logs = relationship("CallLog", back_populates="order", cascade="all, delete-orphan")
-    resolutions = relationship("Resolution", back_populates="order", cascade="all, delete-orphan")
+    call_logs = relationship(
+        "CallLog", back_populates="order", cascade="all, delete-orphan"
+    )
+    resolutions = relationship(
+        "Resolution", back_populates="order", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -49,9 +57,13 @@ class CallLog(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     call_id = Column(String(100), unique=True, index=True, nullable=False)
-    order_id = Column(String(50), ForeignKey("orders.order_id"), nullable=False, index=True)
+    order_id = Column(
+        String(50), ForeignKey("orders.order_id"), nullable=False, index=True
+    )
     duration_seconds = Column(Integer, default=0)
-    call_outcome = Column(String(50), default="reached")  # reached, no_answer, voicemail, busy, failed
+    call_outcome = Column(
+        String(50), default="reached"
+    )  # reached, no_answer, voicemail, busy, failed
     transcript = Column(Text, nullable=True)
     recording_url = Column(String(500), nullable=True)
     extracted_intent_json = Column(Text, nullable=True)  # JSON-encoded string
@@ -95,8 +107,12 @@ class Resolution(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     call_id = Column(String(100), nullable=True, index=True)
-    order_id = Column(String(50), ForeignKey("orders.order_id"), nullable=False, index=True)
-    decided_action = Column(String(50), nullable=False)  # reschedule, initiate_cancellation, flag_address_correction, escalate_to_human, retry_call
+    order_id = Column(
+        String(50), ForeignKey("orders.order_id"), nullable=False, index=True
+    )
+    decided_action = Column(
+        String(50), nullable=False
+    )  # reschedule, initiate_cancellation, flag_address_correction, escalate_to_human, retry_call
     action_payload_json = Column(Text, nullable=True)
     status = Column(String(30), default="EXECUTED")  # EXECUTED, PENDING, FAILED
     outcome = Column(Text, nullable=True)
