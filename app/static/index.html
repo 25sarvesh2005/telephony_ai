@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Commerce Recovery Engine — eigi.ai Telephony Orchestrator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Top Navigation -->
+        <header class="top-nav">
+            <div class="nav-brand">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-phone-volume brand-icon"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>AI Commerce Recovery Engine</h1>
+                    <span class="brand-sub">Powered by <strong class="eigi-badge">eigi.ai</strong> & Fast Orchestration</span>
+                </div>
+            </div>
+            <div class="nav-actions">
+                <div class="mode-pill" id="system-mode-indicator">
+                    <span class="status-dot pulsing"></span>
+                    <span id="mode-text">Simulation Mode Active</span>
+                </div>
+                <button class="btn btn-secondary" id="seed-btn" onclick="seedSampleOrders()">
+                    <i class="fa-solid fa-database"></i> Seed Orders
+                </button>
+                <button class="btn btn-primary" id="refresh-btn" onclick="loadAllData()">
+                    <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Metrics Row -->
+        <section class="metrics-grid">
+            <div class="metric-card card-glow-purple">
+                <div class="metric-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Failed Deliveries</span>
+                    <h2 class="metric-value" id="stat-failed">0</h2>
+                </div>
+            </div>
+            <div class="metric-card card-glow-green">
+                <div class="metric-icon"><i class="fa-solid fa-circle-check"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Rescheduled / Recovered</span>
+                    <h2 class="metric-value" id="stat-rescheduled">0</h2>
+                </div>
+            </div>
+            <div class="metric-card card-glow-red">
+                <div class="metric-icon"><i class="fa-solid fa-ban"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Cancelled / RTO</span>
+                    <h2 class="metric-value" id="stat-cancelled">0</h2>
+                </div>
+            </div>
+            <div class="metric-card card-glow-amber">
+                <div class="metric-icon"><i class="fa-solid fa-headset"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Human Escalations</span>
+                    <h2 class="metric-value" id="stat-escalated">0</h2>
+                </div>
+            </div>
+            <div class="metric-card card-glow-cyan">
+                <div class="metric-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="metric-info">
+                    <span class="metric-label">Recovery Rate</span>
+                    <h2 class="metric-value" id="stat-rate">0%</h2>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace -->
+        <main class="main-layout">
+            <!-- Left: Orders Table -->
+            <div class="panel orders-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <h3>Failed COD Orders Queue</h3>
+                        <span class="count-badge" id="orders-count">0</span>
+                    </div>
+                    <div class="panel-controls">
+                        <div class="search-box">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="order-search" placeholder="Search order ID, customer, phone..." oninput="filterOrders()">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Amount</th>
+                                <th>Attempts</th>
+                                <th>Status</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-table-body">
+                            <tr>
+                                <td colspan="6" class="loading-state">
+                                    <div class="spinner"></div> Loading orders...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Right: Inspection & Call Transcript Drawer -->
+            <div class="panel detail-panel" id="detail-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fa-solid fa-microphone-lines"></i>
+                        <h3 id="detail-title">Order Lifecycle & Call Inspector</h3>
+                    </div>
+                    <div class="panel-actions-quick" id="quick-panel-actions">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="detail-body" id="detail-body">
+                    <div class="empty-selection">
+                        <i class="fa-solid fa-hand-pointer empty-icon"></i>
+                        <h4>Select an order from the list</h4>
+                        <p>Trigger an eigi.ai voice recovery call or run a simulated conversation to see the live transcript, structured JSON extraction, and operational resolution.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Simulator Modal -->
+    <div class="modal-backdrop" id="simulator-modal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    <h3>Interactive Call Simulator</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeSimulatorModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-order-summary" id="modal-order-summary">
+                    <!-- Dynamic order info -->
+                </div>
+
+                <div class="form-group">
+                    <label>Choose Test Scenario Preset:</label>
+                    <div class="scenario-chips">
+                        <button class="chip active" onclick="selectScenario('reschedule')">
+                            <i class="fa-solid fa-calendar-days"></i> Reschedule (Tomorrow 6 PM)
+                        </button>
+                        <button class="chip" onclick="selectScenario('cancel')">
+                            <i class="fa-solid fa-xmark"></i> Cancellation (Bought Elsewhere)
+                        </button>
+                        <button class="chip" onclick="selectScenario('wrong_address')">
+                            <i class="fa-solid fa-map-location-dot"></i> Wrong Address Given
+                        </button>
+                        <button class="chip" onclick="selectScenario('escalate_human')">
+                            <i class="fa-solid fa-user-gear"></i> Escalate to Human Manager
+                        </button>
+                        <button class="chip" onclick="selectScenario('no_answer')">
+                            <i class="fa-solid fa-phone-slash"></i> No Answer / Unreachable
+                        </button>
+                        <button class="chip" onclick="selectScenario('voicemail')">
+                            <i class="fa-solid fa-voicemail"></i> Automated Voicemail
+                        </button>
+                        <button class="chip" onclick="selectScenario('unclear')">
+                            <i class="fa-solid fa-question"></i> Ambiguous / Unclear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" id="reschedule-input-group">
+                    <label>Reschedule Time / Day:</label>
+                    <input type="text" class="input-control" id="custom-reschedule-time" value="Tomorrow at 6:00 PM" placeholder="e.g. Next Monday 11:00 AM">
+                </div>
+
+                <div class="form-group" id="address-input-group" style="display: none;">
+                    <label>Updated Delivery Address:</label>
+                    <input type="text" class="input-control" id="custom-updated-address" value="Flat 402, Sunshine Heights, Koramangala 4th Block" placeholder="e.g. Plot 12, Indiranagar">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSimulatorModal()">Cancel</button>
+                <button class="btn btn-primary" id="run-simulation-btn" onclick="executeSimulation()">
+                    <i class="fa-solid fa-play"></i> Run Simulation & Webhook Flow
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Outbound Trigger Modal -->
+    <div class="modal-backdrop" id="trigger-modal" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <i class="fa-solid fa-phone-volume"></i>
+                    <h3>Initiate eigi.ai Outbound Call</h3>
+                </div>
+                <button class="modal-close-btn" onclick="closeTriggerModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-desc">This triggers an automated voice call via eigi.ai telephony. In live mode, eigi.ai dials the customer via Twilio/Plivo and prompts them regarding this failed COD delivery.</p>
+                <div class="modal-order-summary" id="trigger-order-summary"></div>
+                <div class="form-group">
+                    <label>Target Phone Number (Twilio Verified or Customer):</label>
+                    <input type="text" class="input-control" id="trigger-phone-override" placeholder="+1234567890">
+                    <small class="help-text">Leave blank to use customer's default phone number.</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeTriggerModal()">Cancel</button>
+                <button class="btn btn-success" id="confirm-trigger-btn" onclick="executeTriggerCall()">
+                    <i class="fa-solid fa-phone"></i> Start Outbound Call
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
